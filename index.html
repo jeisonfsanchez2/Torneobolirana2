@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale-1.0">
     <title>Torneo de Bolirana - Sánchez Sport Bar</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -24,6 +24,7 @@
         input[type=number] {
           -moz-appearance: textfield;
         }
+        
         /* Lógica para vistas de Admin vs Pública */
         .admin-only, .public-only {
             display: none;
@@ -31,30 +32,30 @@
         body.admin-view .admin-only {
             display: block;
         }
-        body.admin-view #scoreboard-section,
-        body.admin-view #podium-section {
-            display: block; /* Admin también ve el scoreboard y podio */
+        body.admin-view .admin-only-flex {
+            display: flex;
+        }
+         body.admin-view .admin-only-inline {
+            display: inline-block;
         }
         body.public-view .public-only {
             display: block;
         }
-        body.public-view #scoreboard-section,
-        body.public-view #podium-section {
-            display: block; /* Pública también ve el scoreboard y podio */
-        }
-        body.public-view header {
-            display: none; /* Oculta el header principal en modo público */
+        
+        /* Ocultar header y footer en vista pública */
+        body.public-view header.admin-only {
+            display: none;
         }
     </style>
 </head>
 <body class="bg-gray-800 text-white min-h-screen">
 
     <!-- BANNER PARA VISTA PÚBLICA -->
-    <section id="public-banner-section" class="public-only w-full bg-yellow-400 text-gray-900 p-6 shadow-2xl border-b-8 border-yellow-500">
-        <h2 class="text-4xl font-bold text-center mb-2">Sánchez Sport Bar - Torneo de Bolirana</h2>
-        <h3 class="text-6xl font-bold text-center text-shadow" id="public-banner-text">
-            Esperando inicio del torneo...
-        </h3>
+    <section id="public-banner-section" class="public-only w-full bg-yellow-400 text-gray-900 p-6 shadow-2xl border-b-8 border-yellow-500 min-h-[160px]">
+        <h2 class="text-3xl font-bold text-center mb-2">Sánchez Sport Bar - Torneo de Bolirana</h2>
+        <div id="public-banner-text" class="text-center">
+            <h3 class="text-4xl font-bold text-shadow">Esperando inicio del torneo...</h3>
+        </div>
     </section>
 
     <div class="container mx-auto p-4 md:p-8">
@@ -87,30 +88,35 @@
                     </div>
                 </section>
 
-                <!-- Sección de Configuración e Inscripción (Solo Admin) -->
-                <section id="registration-section" class="admin-only hidden bg-gray-900/80 backdrop-blur-sm p-6 rounded-2xl shadow-2xl border border-yellow-500/30 mb-8 transition-opacity duration-500">
-                    <h3 class="text-3xl font-bold mb-4 border-b-2 border-yellow-500 pb-2">1. Configuración del Torneo</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                        <div id="players-per-group-container">
-                            <label id="players-per-group-label" for="players-per-group" class="block text-xl font-medium text-yellow-400 mb-2">Equipos por Grupo</label>
-                            <input type="number" id="players-per-group" value="4" min="2" class="w-full bg-gray-700 text-white p-3 rounded-lg border-2 border-transparent focus:border-yellow-500 focus:outline-none focus:ring-0 text-xl">
-                        </div>
-                        <div id="num-rounds-container">
-                            <label for="num-rounds" class="block text-xl font-medium text-yellow-400 mb-2">Rondas por Grupo</label>
-                            <input type="number" id="num-rounds" value="3" min="1" class="w-full bg-gray-700 text-white p-3 rounded-lg border-2 border-transparent focus:border-yellow-500 focus:outline-none focus:ring-0 text-xl">
-                        </div>
-                        <div id="classified-container">
-                            <label for="classified-per-group" class="block text-xl font-medium text-yellow-400 mb-2">Clasifican por Grupo</label>
-                            <input type="number" id="classified-per-group" value="2" min="1" class="w-full bg-gray-700 text-white p-3 rounded-lg border-2 border-transparent focus:border-yellow-500 focus:outline-none focus:ring-0 text-xl">
+                <!-- Sección de Configuración e Inscripción (Admin y Pública) -->
+                <section id="registration-section" class="hidden bg-gray-900/80 backdrop-blur-sm p-6 rounded-2xl shadow-2xl border border-yellow-500/30 mb-8 transition-opacity duration-500">
+                    <div class="admin-only">
+                        <h3 class="text-3xl font-bold mb-4 border-b-2 border-yellow-500 pb-2">1. Configuración del Torneo</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                            <div id="players-per-group-container">
+                                <label id="players-per-group-label" for="players-per-group" class="block text-xl font-medium text-yellow-400 mb-2">Equipos por Grupo</label>
+                                <input type="number" id="players-per-group" value="4" min="2" class="w-full bg-gray-700 text-white p-3 rounded-lg border-2 border-transparent focus:border-yellow-500 focus:outline-none focus:ring-0 text-xl">
+                            </div>
+                            <div id="num-rounds-container">
+                                <label for="num-rounds" class="block text-xl font-medium text-yellow-400 mb-2">Rondas por Grupo</label>
+                                <input type="number" id="num-rounds" value="3" min="1" class="w-full bg-gray-700 text-white p-3 rounded-lg border-2 border-transparent focus:border-yellow-500 focus:outline-none focus:ring-0 text-xl">
+                            </div>
+                            <div id="classified-container">
+                                <label for="classified-per-group" class="block text-xl font-medium text-yellow-400 mb-2">Clasifican por Grupo</label>
+                                <input type="number" id="classified-per-group" value="2" min="1" class="w-full bg-gray-700 text-white p-3 rounded-lg border-2 border-transparent focus:border-yellow-500 focus:outline-none focus:ring-0 text-xl">
+                            </div>
                         </div>
                     </div>
 
-                    <h3 class="text-3xl font-bold mb-4 border-b-2 border-yellow-500 pb-2">2. Inscripción</h3>
-                    <div class="flex flex-col sm:flex-row gap-4 mb-4">
-                        <input type="text" id="player-name-1" class="flex-grow bg-gray-700 text-white placeholder-gray-400 p-3 rounded-lg border-2 border-transparent focus:border-yellow-500 focus:outline-none focus:ring-0 text-xl">
-                        <button id="add-player-btn" class="bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold py-3 px-6 rounded-lg text-xl transition-transform duration-200 hover:scale-105">
-                            Inscribir
-                        </button>
+                    <h3 id="inscription-title" class="text-3xl font-bold mb-4 border-b-2 border-yellow-500 pb-2">2. Inscripción</h3>
+                    
+                    <div class="admin-only">
+                        <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                            <input type="text" id="player-name-1" class="flex-grow bg-gray-700 text-white placeholder-gray-400 p-3 rounded-lg border-2 border-transparent focus:border-yellow-500 focus:outline-none focus:ring-0 text-xl">
+                            <button id="add-player-btn" class="bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold py-3 px-6 rounded-lg text-xl transition-transform duration-200 hover:scale-105">
+                                Inscribir
+                            </button>
+                        </div>
                     </div>
 
                     <div id="player-list-container" class="mt-4">
@@ -119,7 +125,7 @@
                         </ul>
                     </div>
                     
-                    <div class="mt-6 text-center">
+                    <div class="mt-6 text-center admin-only">
                         <button id="draw-groups-btn" class="bg-green-600 hover:bg-green-500 text-white font-bold py-4 px-10 rounded-lg text-2xl transition-transform duration-200 hover:scale-105 disabled:bg-gray-600 disabled:cursor-not-allowed disabled:scale-100" disabled>
                             Sortear Enfrentamientos
                         </button>
@@ -142,8 +148,8 @@
                      <div id="liga-container" class="space-y-12"></div>
                 </section>
 
-                <!-- Sección de Finales (Solo Admin) -->
-                <section id="finals-section" class="admin-only hidden">
+                <!-- Sección de Finales (Visible en Ambas Vistas) -->
+                <section id="finals-section" class="hidden">
                      <h3 class="text-3xl font-bold mb-4 border-b-2 border-yellow-500 pb-2">Fase Final</h3>
                      <div id="finals-container" class="space-y-8"></div>
                 </section>
@@ -180,7 +186,7 @@
             <section id="scoreboard-section" class="hidden mt-12">
                 <div>
                     <h3 class="text-3xl text-center font-bold text-yellow-400 mb-6">Tabla General de Puntuación</h3>
-                    <div id="scoreboard-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+                    <div id="scoreboard-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
                 </div>
             </section>
 
@@ -191,14 +197,14 @@
                 Reiniciar Torneo
             </button>
             
-            <!-- Nuevo Botón de Vista -->
+            <!-- Botón de Vista -->
              <div class="mt-6">
                  <button id="toggle-view-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-lg text-lg">
                      <!-- El texto se cambiará por JS -->
                  </button>
              </div>
 
-            <p class="text-gray-500 mt-4">&copy; 2024 Sánchez Sport Bar - Todos los derechos reservados.</p>
+            <p class="text-gray-500 mt-4 admin-only">&copy; 2024 Sánchez Sport Bar - Todos los derechos reservados.</p>
         </footer>
 
     </div>
@@ -281,7 +287,7 @@
                         rounds: [],
                         scores: {},
                         finals: {},
-                        currentMatchText: "Esperando inicio del torneo..."
+                        currentMatches: []
                     };
                     setDoc(tournamentDocRef, initialData);
                 }
@@ -295,38 +301,74 @@
         function renderUI(data) {
             [modeSelectionSection, registrationSection, groupsSection, ligaSection, finalsSection, scoreboardSection, podiumSection, resetTournamentBtn].forEach(el => el.classList.add('hidden'));
             
-            // Actualizar banner público
-            publicBannerText.textContent = data.currentMatchText || "Esperando inicio del próximo partido...";
-
-            if (data.status === 'mode_selection') {
-                modeSelectionSection.classList.remove('hidden');
-            } else if (data.status === 'registration' || data.status === 'finals_registration') {
-                registrationSection.classList.remove('hidden');
-                resetTournamentBtn.classList.remove('hidden');
-                updateRegistrationUI(data);
-            } else if (data.status === 'underway') {
-                groupsSection.classList.remove('hidden');
-                scoreboardSection.classList.remove('hidden');
-                resetTournamentBtn.classList.remove('hidden');
-                displayGroupsAndScores(data);
-            } else if (data.status === 'liga_underway') {
-                ligaSection.classList.remove('hidden');
-                scoreboardSection.classList.remove('hidden');
-                resetTournamentBtn.classList.remove('hidden');
-                displayLiga(data);
-            } else if (data.status === 'playoffs') {
-                finalsSection.classList.remove('hidden');
-                resetTournamentBtn.classList.remove('hidden');
-                displayFinals(data);
-            } else if (data.status === 'finished') {
-                podiumSection.classList.remove('hidden');
-                resetTournamentBtn.classList.remove('hidden');
-                displayPodium(data);
+            const isPublicView = document.body.classList.contains('public-view');
+            
+            // Lógica de visibilidad por estado y vista
+            if (isPublicView) {
+                // VISTA PÚBLICA: Mostrar solo la sección relevante
+                if (data.status === 'registration' || data.status === 'finals_registration') {
+                    registrationSection.classList.remove('hidden');
+                } else if (data.status === 'underway') {
+                    scoreboardSection.classList.remove('hidden');
+                } else if (data.status === 'liga_underway') {
+                    scoreboardSection.classList.remove('hidden');
+                } else if (data.status === 'playoffs') {
+                    finalsSection.classList.remove('hidden');
+                } else if (data.status === 'finished') {
+                    podiumSection.classList.remove('hidden');
+                }
+            } else { 
+                // VISTA ADMIN: Mostrar solo la sección relevante
+                if (data.status === 'mode_selection') {
+                    modeSelectionSection.classList.remove('hidden');
+                } else if (data.status === 'registration' || data.status === 'finals_registration') {
+                    registrationSection.classList.remove('hidden');
+                } else if (data.status === 'underway') {
+                    groupsSection.classList.remove('hidden');
+                    scoreboardSection.classList.remove('hidden');
+                } else if (data.status === 'liga_underway') {
+                    ligaSection.classList.remove('hidden');
+                    scoreboardSection.classList.remove('hidden');
+                } else if (data.status === 'playoffs') {
+                    finalsSection.classList.remove('hidden');
+                } else if (data.status === 'finished') {
+                    podiumSection.classList.remove('hidden');
+                }
+                
+                if(data.status !== 'mode_selection') {
+                    resetTournamentBtn.classList.remove('hidden');
+                }
             }
+
+            // Actualizar banner público
+            if (!data.currentMatches || data.currentMatches.length === 0) {
+                publicBannerText.innerHTML = `<h3 class="text-4xl font-bold text-shadow">Esperando próximo partido...</h3>`;
+            } else {
+                publicBannerText.innerHTML = data.currentMatches.map(matchText => 
+                    `<h3 class="text-3xl font-bold text-shadow mb-2">${matchText}</h3>`
+                ).join('');
+            }
+            
+            // Llamar sub-renderers si sus secciones están visibles
+            if (!registrationSection.classList.contains('hidden')) updateRegistrationUI(data);
+            
+            // FIX: Llamar a los renders de tablas si la sección de scoreboard está visible
+            if (!scoreboardSection.classList.contains('hidden')) {
+                if (data.status === 'underway') {
+                    displayGroupsAndScores(data);
+                } else if (data.status === 'liga_underway') {
+                    displayLiga(data);
+                }
+            }
+            
+            if (!groupsSection.classList.contains('hidden')) displayGroupsAndScores(data);
+            if (!ligaSection.classList.contains('hidden')) displayLiga(data);
+            if (!finalsSection.classList.contains('hidden')) displayFinals(data);
+            if (!podiumSection.classList.contains('hidden')) displayPodium(data);
         }
 
+
         function updateRegistrationUI(data) {
-            // ... (Lógica de UI de Registro - sin cambios)
             let placeholder = 'Nombre del Jugador';
             let inscriptionTitle = '2. Inscripción';
             let drawButtonText = 'Sortear Enfrentamientos';
@@ -351,7 +393,7 @@
             }
 
             playerNameInput1.placeholder = placeholder;
-            document.querySelector('#registration-section h3:nth-of-type(2)').textContent = inscriptionTitle;
+            document.getElementById('inscription-title').textContent = inscriptionTitle;
             drawGroupsBtn.textContent = drawButtonText;
 
             playerList.innerHTML = '';
@@ -426,11 +468,11 @@
                         ${getIndividualGroupHtml(group, `r${roundIndex}_g${groupIndex}`, data)}
                     </div>`;
                 }).join('');
-
-                ligaContainer.innerHTML += `<div class="bg-gray-900/80 p-6 rounded-2xl shadow-2xl">
-                    <h4 class="text-3xl font-bold text-yellow-400 mb-4">Ronda ${roundIndex + 1}</h4>
+                groupDiv.className = 'bg-gray-900/80 backdrop-blur-sm p-6 rounded-2xl shadow-2xl';
+                groupDiv.innerHTML = `<h4 class="text-3xl font-bold text-yellow-400 mb-4">Ronda ${roundIndex + 1}</h4>
                     <div class="space-y-6">${groupsHtml}</div>
                 </div>`;
+                ligaContainer.appendChild(groupDiv);
             });
             calculateGlobalLigaResults(data);
         }
@@ -453,21 +495,29 @@
             for (let round = 1; round <= roundCount; round++) {
                 const finalRoundIdentifier = roundIdentifier || round;
                 
+                const playerList = group.join(' vs ');
                 const setCurrentMatchText = isLiga ? 
-                    `Liga: Ronda ${parseInt(groupIdentifier.split('_')[0].replace('r', '')) + 1} - Grupo ${parseInt(groupIdentifier.split('_')[1].replace('g', '')) + 1}` :
-                    `Grupo ${parseInt(groupIdentifier.replace('g', '')) + 1} - Ronda ${finalRoundIdentifier}`;
+                    `Liga (G${parseInt(groupIdentifier.split('_')[1].replace('g', '')) + 1}): ${playerList}` :
+                    `Grupo ${parseInt(groupIdentifier.replace('g', '')) + 1} (R${finalRoundIdentifier}): ${playerList}`;
+                
+                const isCurrentMatch = (data.currentMatches || []).includes(setCurrentMatchText);
+                const buttonText = isCurrentMatch ? 'Terminar ⏹' : 'En Curso ▶';
+                const buttonColor = isCurrentMatch ? 'bg-red-600 hover:bg-red-500' : 'bg-yellow-500 hover:bg-yellow-400 text-gray-900';
+                const buttonAction = isCurrentMatch ? 'clear' : 'set';
                 
                 roundsHtml += `<div class="bg-black/20 p-4 rounded-lg">
                     <div class="flex justify-between items-center mb-3">
                         ${!isLiga ? `<p class="text-xl font-semibold">Ronda ${finalRoundIdentifier}</p>`: '<span></span>'}
-                        <button data-match-text="${setCurrentMatchText}" class="set-current-match-btn admin-only bg-yellow-500 text-gray-900 px-3 py-1 rounded-md text-sm font-bold hover:bg-yellow-400">En Curso ▶</button>
+                        <button data-match-text="${setCurrentMatchText}" data-action="${buttonAction}" class="set-current-match-btn admin-only ${buttonColor} px-3 py-1 rounded-md text-sm font-bold">
+                            ${buttonText}
+                        </button>
                     </div>
                     <div class="grid grid-cols-2 md:grid-cols-${Math.min(groupSize, 4)} gap-3">
                         ${positions.map(p => {
-                            const scorePath = isLiga ? scores?.[groupIdentifier] : scores?.[groupIdentifier]?.[`r${finalRoundIdentifier}`];
+                            const scorePath = isLiga ? scores?.[groupIdentifier] : scores?.[`g${groupIdentifier.replace('g', '')}`]?.[`r${finalRoundIdentifier}`];
                             const selectedPlayer = scorePath?.[`p${p.pos}`] || "";
                             return `<div><label class="block text-sm font-medium text-yellow-400">${p.label} (${p.pts})</label><select data-group="${groupIdentifier}" data-round="${finalRoundIdentifier}" data-position="${p.pos}" class="mt-1 block w-full bg-gray-700 rounded-md p-2 admin-only"><option value="">Seleccionar...</option>${group.map(player => `<option value="${player}" ${player === selectedPlayer ? 'selected' : ''}>${player}</option>`).join('')}</select>
-                            <div class="mt-1 block w-full bg-gray-900 rounded-md p-2 public-only min-h-[44px]">${selectedPlayer}</div>
+                            <div class="mt-1 block w-full bg-gray-900 rounded-md p-2 public-only min-h-[44px] text-lg">${selectedPlayer}</div>
                             </div>`;
                         }).join('')}
                     </div></div>`;
@@ -489,15 +539,23 @@
                         const [teamA, teamB] = match;
                         const winner = scores?.[`g${groupIndex}`]?.[`r${roundNum}`]?.[`m${matchIndex}`] || null;
                         const matchText = `Grupo ${groupIndex + 1}: ${teamA} vs ${teamB}`;
+                        
+                        const isCurrentMatch = (data.currentMatches || []).includes(matchText);
+                        const buttonText = isCurrentMatch ? '⏹' : '▶';
+                        const buttonColor = isCurrentMatch ? 'bg-red-600 hover:bg-red-500' : 'bg-yellow-500 hover:bg-yellow-400 text-gray-900';
+                        const buttonAction = isCurrentMatch ? 'clear' : 'set';
+                        
                         return `<div class="flex items-center justify-around text-xl">
                             <button data-group="${groupIndex}" data-round="${roundNum}" data-match="${matchIndex}" data-winner="${teamA}" class="admin-only ${winner === teamA ? 'bg-green-500' : 'bg-gray-700 hover:bg-gray-600'} p-3 rounded-lg w-2/5 text-center">${teamA}</button>
-                            <span class="public-only ${winner === teamA ? 'text-green-400' : ''} p-3 rounded-lg w-2/5 text-center">${teamA}</span>
+                            <span class="public-only ${winner === teamA ? 'text-green-400' : 'text-white'} p-3 rounded-lg w-2/5 text-center text-lg">${teamA}</span>
                             
-                            <button data-match-text="${matchText}" class="set-current-match-btn admin-only bg-yellow-500 text-gray-900 p-2 rounded-full text-lg font-bold hover:bg-yellow-400">▶</button>
+                            <button data-match-text="${matchText}" data-action="${buttonAction}" class="set-current-match-btn admin-only ${buttonColor} p-2 rounded-full text-lg font-bold hover:bg-yellow-400">
+                                ${buttonText}
+                            </button>
                             <span class="font-bold text-yellow-400 px-2">VS</span>
 
                             <button data-group="${groupIndex}" data-round="${roundNum}" data-match="${matchIndex}" data-winner="${teamB}" class="admin-only ${winner === teamB ? 'bg-green-500' : 'bg-gray-700 hover:bg-gray-600'} p-3 rounded-lg w-2/5 text-center">${teamB}</button>
-                            <span class="public-only ${winner === teamB ? 'text-green-400' : ''} p-3 rounded-lg w-2/5 text-center">${teamB}</span>
+                            <span class="public-only ${winner === teamB ? 'text-green-400' : 'text-white'} p-3 rounded-lg w-2/5 text-center text-lg">${teamB}</span>
                         </div>`;
                     }).join('')}
                     </div></div>`;
@@ -506,7 +564,6 @@
         }
         
         function calculateAndDisplayResults(groupIndex, group, data) {
-            // ... (Lógica de Cálculo de Puntos - sin cambios)
             const points = group.reduce((acc, player) => ({ ...acc, [player]: 0 }), {});
             
             if(data.mode === 'individual') {
@@ -555,12 +612,11 @@
             }
             tableContainer.innerHTML = `<div class="bg-gray-900/80 p-4 rounded-2xl shadow-xl h-full"><h5 class="text-2xl font-bold mb-3 text-center">Grupo ${groupIndex + 1}</h5><table class="w-full text-left rounded-lg overflow-hidden">
                 <thead class="bg-yellow-500 text-gray-900"><tr><th class="p-3">Pos</th><th class="p-3">Equipo</th><th class="p-3 text-right">Puntos</th></tr></thead>
-                <tbody>${sortedPlayers.map(([name, score], i) => `<tr class="${getRowColorClass(i, score)} last:border-b-0"><td class="p-3 font-semibold text-xl">${i + 1}</td><td class="p-3 text-xl">${name}</td><td class="p-3 text-xl font-bold text-right">${score}</td></tr>`).join('')}</tbody>
+                <tbody>${sortedPlayers.map(([name, score], i) => `<tr class="${getRowColorClass(i, score)} last:border-b-0"><td class="p-3 font-semibold text-lg">${i + 1}</td><td class="p-3 text-lg">${name}</td><td class="p-3 text-lg font-bold text-right">${score}</td></tr>`).join('')}</tbody>
                 </table></div>`;
         }
         
         function calculateGlobalLigaResults(data) {
-            // ... (Lógica de Cálculo de Liga - sin cambios)
             const points = (data.players || []).reduce((acc, player) => ({ ...acc, [player]: 0 }), {});
             (data.rounds || []).forEach((roundData, roundIndex) => {
                 roundData.groups.forEach((groupObj, groupIndex) => {
@@ -576,8 +632,11 @@
             const numClassified = data.config.classifiedPerGroup;
 
             const getRowColorClass = (index) => {
+                 if (sortedPlayers.length === 0) return '';
                  const score = sortedPlayers[index][1];
                  const lastClassifiedIndex = numClassified - 1;
+                 if (lastClassifiedIndex >= sortedPlayers.length) return 'bg-green-800/50 border-b border-green-700'; // Todos clasifican
+
                  const lastClassifiedScore = sortedPlayers[lastClassifiedIndex] ? sortedPlayers[lastClassifiedIndex][1] : -1;
                  const firstEliminatedScore = sortedPlayers[numClassified] ? sortedPlayers[numClassified][1] : -1;
 
@@ -594,7 +653,7 @@
             
             scoreboardContainer.innerHTML = `<div class="md:col-span-2 lg:col-span-3"><div class="bg-gray-900/80 p-4 rounded-2xl shadow-xl h-full"><h5 class="text-2xl font-bold mb-3 text-center">Clasificación Global de la Liga</h5><table class="w-full text-left rounded-lg overflow-hidden">
                 <thead class="bg-yellow-500 text-gray-900"><tr><th class="p-3">Pos</th><th class="p-3">Jugador</th><th class="p-3 text-right">Puntos</th></tr></thead>
-                <tbody>${sortedPlayers.map(([name, score], i) => `<tr class="${getRowColorClass(i)} last:border-b-0"><td class="p-3 font-semibold text-xl">${i + 1}</td><td class="p-3 text-xl">${name}</td><td class="p-3 text-xl font-bold text-right">${score}</td></tr>`).join('')}</tbody>
+                <tbody>${sortedPlayers.map(([name, score], i) => `<tr class="${getRowColorClass(i)} last:border-b-0"><td class="p-3 font-semibold text-lg">${i + 1}</td><td class="p-3 text-lg">${name}</td><td class="p-3 text-lg font-bold text-right">${score}</td></tr>`).join('')}</tbody>
                 </table></div></div>`;
         }
 
@@ -606,15 +665,23 @@
             let semiHtml = finals.semifinals.map((match, index) => {
                 const [teamA, teamB] = match.teams;
                 const matchText = `Semifinal: ${teamA} vs ${teamB}`;
+
+                const isCurrentMatch = (data.currentMatches || []).includes(matchText);
+                const buttonText = isCurrentMatch ? '⏹' : '▶';
+                const buttonColor = isCurrentMatch ? 'bg-red-600 hover:bg-red-500' : 'bg-yellow-500 hover:bg-yellow-400 text-gray-900';
+                const buttonAction = isCurrentMatch ? 'clear' : 'set';
+                
                 return `<div class="bg-black/20 p-4 rounded-lg"><div class="flex items-center justify-around text-xl">
                     <button data-stage="semifinals" data-match="${index}" data-winner="${teamA}" class="admin-only ${match.winner === teamA ? 'bg-green-500' : 'bg-gray-700 hover:bg-gray-600'} p-3 rounded-lg w-2/5 text-center">${teamA}</button>
-                    <span class="public-only ${match.winner === teamA ? 'text-green-400' : ''} p-3 rounded-lg w-2/5 text-center">${teamA}</span>
+                    <span class="public-only ${match.winner === teamA ? 'text-green-400' : 'text-white'} p-3 rounded-lg w-2/5 text-center text-lg">${teamA}</span>
 
-                    <button data-match-text="${matchText}" class="set-current-match-btn admin-only bg-yellow-500 text-gray-900 p-2 rounded-full text-lg font-bold hover:bg-yellow-400">▶</button>
+                    <button data-match-text="${matchText}" data-action="${buttonAction}" class="set-current-match-btn admin-only ${buttonColor} p-2 rounded-full text-lg font-bold hover:bg-yellow-400">
+                        ${buttonText}
+                    </button>
                     <span class="font-bold text-yellow-400 px-2">VS</span>
 
                     <button data-stage="semifinals" data-match="${index}" data-winner="${teamB}" class="admin-only ${match.winner === teamB ? 'bg-green-500' : 'bg-gray-700 hover:bg-gray-600'} p-3 rounded-lg w-2/5 text-center">${teamB}</button>
-                    <span class="public-only ${match.winner === teamB ? 'text-green-400' : ''} p-3 rounded-lg w-2/5 text-center">${teamB}</span>
+                    <span class="public-only ${match.winner === teamB ? 'text-green-400' : 'text-white'} p-3 rounded-lg w-2/5 text-center text-lg">${teamB}</span>
                 </div></div>`;
             }).join('');
             finalsContainer.innerHTML += `<div class="bg-gray-900/80 p-6 rounded-2xl shadow-2xl"><h4 class="text-3xl font-bold text-yellow-400 mb-4">Semifinales</h4><div class="space-y-4">${semiHtml}</div></div>`;
@@ -624,38 +691,51 @@
                 const finalMatchText = `GRAN FINAL: ${final.teams[0]} vs ${final.teams[1]}`;
                 const thirdMatchText = `3er Puesto: ${thirdPlace.teams[0]} vs ${thirdPlace.teams[1]}`;
 
+                const isCurrentFinal = (data.currentMatches || []).includes(finalMatchText);
+                const finalButtonText = isCurrentFinal ? '⏹' : '▶';
+                const finalButtonColor = isCurrentFinal ? 'bg-red-600 hover:bg-red-500' : 'bg-yellow-500 hover:bg-yellow-400 text-gray-900';
+                const finalButtonAction = isCurrentFinal ? 'clear' : 'set';
+
+                const isCurrentThird = (data.currentMatches || []).includes(thirdMatchText);
+                const thirdButtonText = isCurrentThird ? '⏹' : '▶';
+                const thirdButtonColor = isCurrentThird ? 'bg-red-600 hover:bg-red-500' : 'bg-yellow-500 hover:bg-yellow-400 text-gray-900';
+                const thirdButtonAction = isCurrentThird ? 'clear' : 'set';
+
                 let finalHtml = `<div class="bg-black/20 p-4 rounded-lg"><div class="flex items-center justify-around text-xl">
                     <button data-stage="final" data-winner="${final.teams[0]}" class="admin-only ${final.winner === final.teams[0] ? 'bg-green-500' : 'bg-gray-700 hover:bg-gray-600'} p-3 rounded-lg w-2/5 text-center">${final.teams[0] || '...'}</button>
-                    <span class="public-only ${final.winner === final.teams[0] ? 'text-green-400' : ''} p-3 rounded-lg w-2/5 text-center">${final.teams[0] || '...'}</span>
+                    <span class="public-only ${final.winner === final.teams[0] ? 'text-green-400' : 'text-white'} p-3 rounded-lg w-2/5 text-center text-lg">${final.teams[0] || '...'}</span>
                     
-                    <button data-match-text="${finalMatchText}" class="set-current-match-btn admin-only bg-yellow-500 text-gray-900 p-2 rounded-full text-lg font-bold hover:bg-yellow-400">▶</button>
+                    <button data-match-text="${finalMatchText}" data-action="${finalButtonAction}" class="set-current-match-btn admin-only ${finalButtonColor} p-2 rounded-full text-lg font-bold hover:bg-yellow-400">
+                        ${finalButtonText}
+                    </button>
                     <span class="font-bold text-yellow-400 px-2">VS</span>
                     
                     <button data-stage="final" data-winner="${final.teams[1]}" class="admin-only ${final.winner === final.teams[1] ? 'bg-green-500' : 'bg-gray-700 hover:bg-gray-600'} p-3 rounded-lg w-2/5 text-center">${final.teams[1] || '...'}</button>
-                    <span class="public-only ${final.winner === final.teams[1] ? 'text-green-400' : ''} p-3 rounded-lg w-2/5 text-center">${final.teams[1] || '...'}</span>
+                    <span class="public-only ${final.winner === final.teams[1] ? 'text-green-400' : 'text-white'} p-3 rounded-lg w-2/5 text-center text-lg">${final.teams[1] || '...'}</span>
                 </div></div>`;
                 let thirdHtml = `<div class="bg-black/20 p-4 rounded-lg"><div class="flex items-center justify-around text-xl">
                     <button data-stage="thirdPlace" data-winner="${thirdPlace.teams[0]}" class="admin-only ${thirdPlace.winner === thirdPlace.teams[0] ? 'bg-green-500' : 'bg-gray-700 hover:bg-gray-600'} p-3 rounded-lg w-2/5 text-center">${thirdPlace.teams[0] || '...'}</button>
-                    <span class="public-only ${thirdPlace.winner === thirdPlace.teams[0] ? 'text-green-400' : ''} p-3 rounded-lg w-2/5 text-center">${thirdPlace.teams[0] || '...'}</span>
+                    <span class="public-only ${thirdPlace.winner === thirdPlace.teams[0] ? 'text-green-400' : 'text-white'} p-3 rounded-lg w-2/5 text-center text-lg">${thirdPlace.teams[0] || '...'}</span>
 
-                    <button data-match-text="${thirdMatchText}" class="set-current-match-btn admin-only bg-yellow-500 text-gray-900 p-2 rounded-full text-lg font-bold hover:bg-yellow-400">▶</button>
+                    <button data-match-text="${thirdMatchText}" data-action="${thirdButtonAction}" class="set-current-match-btn admin-only ${thirdButtonColor} p-2 rounded-full text-lg font-bold hover:bg-yellow-400">
+                        ${thirdButtonText}
+                    </button>
                     <span class="font-bold text-yellow-400 px-2">VS</span>
 
                     <button data-stage="thirdPlace" data-winner="${thirdPlace.teams[1]}" class="admin-only ${thirdPlace.winner === thirdPlace.teams[1] ? 'bg-green-500' : 'bg-gray-700 hover:bg-gray-600'} p-3 rounded-lg w-2/5 text-center">${thirdPlace.teams[1] || '...'}</button>
-                    <span class="public-only ${thirdPlace.winner === thirdPlace.teams[1] ? 'text-green-400' : ''} p-3 rounded-lg w-2/5 text-center">${thirdPlace.teams[1] || '...'}</span>
+                    <span class="public-only ${thirdPlace.winner === thirdPlace.teams[1] ? 'text-green-400' : 'text-white'} p-3 rounded-lg w-2/5 text-center text-lg">${thirdPlace.teams[1] || '...'}</span>
                 </div></div>`;
                 finalsContainer.innerHTML += `<div class="bg-gray-900/80 p-6 mt-8 rounded-2xl shadow-2xl"><h4 class="text-3xl font-bold text-yellow-400 mb-4">Final</h4><div class="space-y-4">${finalHtml}</div></div>`;
                 finalsContainer.innerHTML += `<div class="bg-gray-900/80 p-6 mt-8 rounded-2xl shadow-2xl"><h4 class="text-3xl font-bold text-yellow-400 mb-4">Tercer Puesto</h4><div class="space-y-4">${thirdHtml}</div></div>`;
             
                 if(final.winner && thirdPlace.winner) {
                     finalsContainer.innerHTML += `<div class="mt-8 text-center admin-only"><button id="finish-tournament-btn" class="bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold py-4 px-10 rounded-lg text-2xl">Finalizar Torneo y Ver Podio</button></div>`;
-                    document.getElementById('finish-tournament-btn').addEventListener('click', () => updateDoc(tournamentDocRef, { status: 'finished', currentMatchText: `¡Torneo Finalizado! Campeón: ${final.winner}` }));
+                    document.getElementById('finish-tournament-btn').addEventListener('click', () => updateDoc(tournamentDocRef, { status: 'finished', currentMatches: [`¡Torneo Finalizado! Campeón: ${final.winner}`] }));
                 }
             }
         }
         
         function displayPodium(data) {
-            // ... (Lógica del Podio - sin cambios)
             const { finals } = data;
             if(!finals || !finals.final || !finals.thirdPlace) return;
 
@@ -671,7 +751,6 @@
         }
 
         function generateRoundRobin(players) {
-            // ... (Lógica de Round Robin - sin cambios)
             const schedule = [];
             if (players.length < 2) return [];
             const teams = [...players];
@@ -712,9 +791,21 @@
             toggleViewBtn.addEventListener('click', toggleView);
             
             document.body.addEventListener('change', (e) => { if (e.target.matches('select[data-group]')) handleScoreChange(e.target); });
-            document.body.addEventListener('click', (e) => {
+            
+            document.body.addEventListener('click', async (e) => {
                 if (e.target.matches('button.set-current-match-btn')) {
-                    updateDoc(tournamentDocRef, { currentMatchText: e.target.dataset.matchText });
+                    const action = e.target.dataset.action;
+                    const matchText = e.target.dataset.matchText;
+                    try {
+                        if (action === 'set') {
+                            await updateDoc(tournamentDocRef, { currentMatches: arrayUnion(matchText) });
+                        } else { // action === 'clear'
+                            await updateDoc(tournamentDocRef, { currentMatches: arrayRemove(matchText) });
+                        }
+                    } catch (err) {
+                        console.error("Error updating current match:", err);
+                        alert("Error al actualizar el partido en curso. Revisa la consola.");
+                    }
                 }
                 if (e.target.matches('button[data-winner]')) {
                     if (e.target.closest('#groups-container')) handleMatchWinner(e.target);
@@ -728,7 +819,6 @@
         }
 
         async function addPlayer() {
-            // ... (Lógica de Añadir Jugador - sin cambios)
             const name = playerNameInput1.value.trim();
             if (name && !(currentTournamentData.players || []).includes(name)) {
                 if(currentTournamentData.status === 'finals_registration' && (currentTournamentData.players || []).length >= 4) {
@@ -755,7 +845,6 @@
         }
         
         async function drawGroups() {
-            // ... (Lógica de Sorteo de Grupos - sin cambios)
             const { players, config } = currentTournamentData;
             const shuffled = [...players].sort(() => 0.5 - Math.random());
             const groups = [];
@@ -792,7 +881,6 @@
         }
 
         async function drawSemifinals() {
-            // ... (Lógica de Sorteo de Semifinales - sin cambios)
             const shuffled = [...currentTournamentData.players].sort(() => 0.5 - Math.random());
             const semifinals = [
                 { teams: [shuffled[0], shuffled[1]], winner: null },
@@ -802,7 +890,6 @@
         }
         
         async function generateFinals() { 
-            // ... (Lógica de Generar Finales - sin cambios)
             const { groups, config, scores } = currentTournamentData;
             let allClassified = [];
 
@@ -856,14 +943,25 @@
          }
 
         async function handleScoreChange(selectElement) {
-            // ... (Lógica de Cambio de Puntaje - sin cambios)
             const { group, round, position } = selectElement.dataset;
             const player = selectElement.value;
             
             const isLiga = String(group).includes('_');
-            const scorePath = isLiga ? `scores.${group}.p${position}` : `scores.g${group}.r${round}.p${position}`;
-            const roundScores = isLiga ? (currentTournamentData.scores?.[group] || {}) : (currentTournamentData.scores?.[`g${group}`]?.[`r${round}`] || {});
             
+            let scorePath;
+            let roundScores;
+
+            if (isLiga) {
+                // Modo Liga: group es 'r0_g0'
+                scorePath = `scores.${group}.p${position}`;
+                roundScores = currentTournamentData.scores?.[group] || {};
+            } else {
+                // Modo Individual: group es 'g0', 'g1', etc.
+                scorePath = `scores.${group}.r${round}.p${position}`;
+                roundScores = currentTournamentData.scores?.[group]?.[`r${round}`] || {};
+            }
+
+            // Validar duplicados
             for (const key in roundScores) {
                 if (roundScores[key] === player && key !== `p${position}` && player) {
                     alert(`"${player}" ya fue seleccionado en otra posición para esta ronda.`);
@@ -871,17 +969,21 @@
                     return;
                 }
             }
-            await updateDoc(tournamentDocRef, { [scorePath]: player });
+            
+            try {
+                await updateDoc(tournamentDocRef, { [scorePath]: player });
+            } catch (error) {
+                console.error("Error al guardar el puntaje:", error, "Path:", scorePath);
+                alert("Error: No se pudo guardar el puntaje. Revisa la consola para más detalles.");
+            }
         }
         
         async function handleMatchWinner(btn) {
-            // ... (Lógica de Ganador de Partido - sin cambios)
             const { group, round, match, winner } = btn.dataset;
             await updateDoc(tournamentDocRef, { [`scores.g${group}.r${round}.m${match}`]: winner });
         }
 
         async function handlePlayoffWinner(btn) {
-            // ... (Lógica de Ganador de Playoff - sin cambios)
             const { stage, winner } = btn.dataset;
             const finals = { ...currentTournamentData.finals };
             
@@ -925,7 +1027,7 @@
             }
             await setDoc(tournamentDocRef, {
                 status: 'mode_selection', mode: null, config: { playersPerGroup: 4, numRounds: 3, pointsPerWin: 3, classifiedPerGroup: 2 },
-                players: [], groups: [], rounds: [], scores: {}, finals: {}, currentMatchText: "Esperando inicio del torneo..."
+                players: [], groups: [], rounds: [], scores: {}, finals: {}, currentMatches: []
             });
         }
         
