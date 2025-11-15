@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale-1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Torneo de Bolirana - Sánchez Sport Bar</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -70,7 +70,7 @@
             <main id="app-container">
 
                  <!-- Sección de Selección de Modo (Solo Admin) -->
-                <section id="mode-selection-section" class="admin-only bg-gray-900/80 backdrop-blur-sm p-6 rounded-2xl shadow-2xl border border-yellow-500/30 mb-8 text-center">
+                <section id="mode-selection-section" class="bg-gray-900/80 backdrop-blur-sm p-6 rounded-2xl shadow-2xl border border-yellow-500/30 mb-8 text-center hidden">
                     <h3 class="text-4xl font-bold mb-6">Selecciona el Modo de Juego</h3>
                     <div class="flex flex-col md:flex-row gap-6 justify-center flex-wrap">
                         <button id="select-mode-individual" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-6 px-12 rounded-lg text-3xl transition-transform duration-200 hover:scale-105">
@@ -186,7 +186,7 @@
             <section id="scoreboard-section" class="hidden mt-12">
                 <div>
                     <h3 class="text-3xl text-center font-bold text-yellow-400 mb-6">Tabla General de Puntuación</h3>
-                    <div id="scoreboard-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+                    <div id="scoreboard-container" class="grid gap-6"></div>
                 </div>
             </section>
 
@@ -267,6 +267,9 @@
         
         // --- Lógica Principal ---
         async function main() {
+            // CONFIRMACIÓN DE QUE EL CÓDIGO NUEVO ESTÁ CORRIENDO
+            alert("¡NUEVA VERSIÓN! Flujo de vistas corregido (15-Nov 11:15)"); 
+            
             // Determinar la vista (Admin o Pública) desde localStorage
             const currentView = localStorage.getItem('tournament_view') || 'admin';
             document.body.classList.add(currentView === 'public' ? 'public-view' : 'admin-view');
@@ -432,6 +435,9 @@
                 generateFinalsContainer.classList.remove('hidden');
             }
 
+            // APLICAR CLASES DE CUADRÍCULA DINÁMICAS
+            setGridCols(scoreboardContainer, (data.groups || []).length);
+
             (data.groups || []).forEach((groupObj, groupIndex) => {
                 const group = groupObj.players;
                 let groupHtml;
@@ -456,6 +462,10 @@
         function displayLiga(data) {
             ligaContainer.innerHTML = '';
             scoreboardContainer.innerHTML = '';
+
+            // APLICAR CLASES DE CUADRÍCULA PARA LIGA (para que la tabla interna se expanda)
+            scoreboardContainer.className = 'grid gap-6 grid-cols-1 lg:grid-cols-3';
+
             (data.rounds || []).forEach((roundData, roundIndex) => {
                 let groupsHtml = roundData.groups.map((groupObj, groupIndex) => {
                     const group = groupObj.players;
@@ -468,7 +478,9 @@
                         ${getIndividualGroupHtml(group, `r${roundIndex}_g${groupIndex}`, data)}
                     </div>`;
                 }).join('');
-                groupDiv.className = 'bg-gray-900/80 backdrop-blur-sm p-6 rounded-2xl shadow-2xl';
+
+                const groupDiv = document.createElement('div'); // <-- FIX: 'groupDiv' no estaba definido aquí
+                groupDiv.className = 'bg-gray-900/80 p-6 rounded-2xl shadow-2xl';
                 groupDiv.innerHTML = `<h4 class="text-3xl font-bold text-yellow-400 mb-4">Ronda ${roundIndex + 1}</h4>
                     <div class="space-y-6">${groupsHtml}</div>
                 </div>`;
@@ -564,34 +576,73 @@
         }
         
         function calculateAndDisplayResults(groupIndex, group, data) {
-            const points = group.reduce((acc, player) => ({ ...acc, [player]: 0 }), {});
             
-            if(data.mode === 'individual') {
-                for (let r = 1; r <= data.config.numRounds; r++) {
-                    for(let p = 1; p <= group.length; p++) {
-                        const player = data.scores?.[`g${groupIndex}`]?.[`r${r}`]?.[`p${p}`];
-                        if (player) points[player] += Math.max(0, group.length - p);
+            let sortedStats = [];
+            let headers = [];
+            const { config, scores, mode } = data;
+            const numClassified = config.classifiedPerGroup || 2;
+
+            if(mode === 'individual') {
+                const playerScores = {};
+                group.forEach(player => playerScores[player] = { rounds: [], total: 0 });
+                
+                for (let r = 1; r <= config.numRounds; r++) {
+                    headers.push(`R${r}`); // Construir cabeceras
+                    const roundScores = scores?.[`g${groupIndex}`]?.[`r${r}`] || {};
+                    const pointsThisRound = {};
+                    group.forEach(p => pointsThisRound[p] = 0); 
+
+                    for (const posKey in roundScores) {
+                        const player = roundScores[posKey];
+                        if (player) {
+                            const position = parseInt(posKey.replace('p', ''));
+                            pointsThisRound[player] = Math.max(0, group.length - position);
+                        }
                     }
-                }
-            } else { // Parejas
-                const pairings = generateRoundRobin(group);
-                pairings.forEach((roundPairings, roundIndex) => {
-                    roundPairings.forEach((match, matchIndex) => {
-                         const winner = data.scores?.[`g${groupIndex}`]?.[`r${roundIndex + 1}`]?.[`m${matchIndex}`];
-                         if (winner) points[winner] += data.config.pointsPerWin;
+                    
+                    group.forEach(player => {
+                        playerScores[player].rounds.push(pointsThisRound[player]);
+                        playerScores[player].total += pointsThisRound[player];
                     });
+                }
+                sortedStats = Object.entries(playerScores).sort((a, b) => b[1].total - a[1].total);
+            
+            } else { // Modo Parejas
+                const teamStats = {};
+                group.forEach(team => teamStats[team] = { rounds: [], total: 0 });
+                const pairings = generateRoundRobin(group);
+
+                pairings.forEach((roundPairings, roundIndex) => {
+                    const roundNum = roundIndex + 1;
+                    headers.push(`R${roundNum}`); // Construir cabeceras
+                    const roundResults = {}; 
+                    group.forEach(t => roundResults[t] = '-'); 
+
+                    roundPairings.forEach((match, matchIndex) => {
+                        const [teamA, teamB] = match;
+                        const winner = scores?.[`g${groupIndex}`]?.[`r${roundNum}`]?.[`m${matchIndex}`];
+                        if (winner === teamA) {
+                            roundResults[teamA] = 'G';
+                            roundResults[teamB] = 'P';
+                            teamStats[teamA].total += config.pointsPerWin;
+                        } else if (winner === teamB) {
+                            roundResults[teamA] = 'P';
+                            roundResults[teamB] = 'G';
+                            teamStats[teamB].total += config.pointsPerWin;
+                        }
+                    });
+                    
+                    group.forEach(team => teamStats[team].rounds.push(roundResults[team]));
                 });
+                sortedStats = Object.entries(teamStats).sort((a, b) => b[1].total - a[1].total);
             }
 
-            const sortedPlayers = Object.entries(points).sort((a, b) => b[1] - a[1]);
-            const numClassified = data.config.classifiedPerGroup || 2;
-            
             const getRowColorClass = (index, score) => {
-                if (sortedPlayers.length <= numClassified) return 'bg-green-800/50 border-b border-green-700';
+                if (sortedStats.length <= numClassified) return 'bg-green-800/50 border-b border-green-700';
                 
                 const lastClassifiedIndex = numClassified - 1;
-                const lastClassifiedScore = sortedPlayers[lastClassifiedIndex][1];
-                const firstEliminatedScore = sortedPlayers[numClassified] ? sortedPlayers[numClassified][1] : -1;
+                const lastClassifiedScore = sortedStats[lastClassifiedIndex][1].total;
+                const firstEliminatedScore = sortedStats[numClassified] ? sortedStats[numClassified][1].total : -1;
 
                 if (lastClassifiedScore > firstEliminatedScore) {
                     return index < numClassified ? 'bg-green-800/50 border-b border-green-700' : 'bg-red-800/50 border-b border-red-700';
@@ -610,35 +661,69 @@
                 tableContainer.id = `results-table-${groupIndex}`;
                 scoreboardContainer.appendChild(tableContainer);
             }
-            tableContainer.innerHTML = `<div class="bg-gray-900/80 p-4 rounded-2xl shadow-xl h-full"><h5 class="text-2xl font-bold mb-3 text-center">Grupo ${groupIndex + 1}</h5><table class="w-full text-left rounded-lg overflow-hidden">
-                <thead class="bg-yellow-500 text-gray-900"><tr><th class="p-3">Pos</th><th class="p-3">Equipo</th><th class="p-3 text-right">Puntos</th></tr></thead>
-                <tbody>${sortedPlayers.map(([name, score], i) => `<tr class="${getRowColorClass(i, score)} last:border-b-0"><td class="p-3 font-semibold text-lg">${i + 1}</td><td class="p-3 text-lg">${name}</td><td class="p-3 text-lg font-bold text-right">${score}</td></tr>`).join('')}</tbody>
-                </table></div>`;
+            
+            tableContainer.innerHTML = `
+                <div class="bg-gray-900/80 p-4 rounded-2xl shadow-xl h-full">
+                    <h5 class="text-2xl font-bold mb-3 text-center">Grupo ${groupIndex + 1}</h5>
+                    <table class="w-full text-left rounded-lg overflow-hidden">
+                        <thead class="bg-yellow-500 text-gray-900">
+                            <tr>
+                                <th class="p-3">Pos</th>
+                                <th class="p-3">Equipo</th>
+                                ${headers.map(h => `<th class="p-3 text-center">${h}</th>`).join('')}
+                                <th class="p-3 text-right">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${sortedStats.map(([name, stats], i) => `
+                                <tr class="${getRowColorClass(i, stats.total)} last:border-b-0">
+                                    <td class="p-3 font-semibold text-lg">${i + 1}</td>
+                                    <td class="p-3 text-lg">${name}</td>
+                                    ${stats.rounds.map(r => `<td class="p-3 text-center text-lg ${r === 'G' ? 'text-green-400' : (r === 'P' ? 'text-red-400' : '')}">${r}</td>`).join('')}
+                                    <td class="p-3 text-lg font-bold text-right">${stats.total}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>`;
         }
         
         function calculateGlobalLigaResults(data) {
-            const points = (data.players || []).reduce((acc, player) => ({ ...acc, [player]: 0 }), {});
+            const points = {};
+            const headers = [];
+            for(let i=1; i <= data.config.numRounds; i++) headers.push(`R${i}`);
+            
+            (data.players || []).forEach(player => {
+                points[player] = { rounds: Array(data.config.numRounds).fill(0), total: 0 };
+            });
+
             (data.rounds || []).forEach((roundData, roundIndex) => {
                 roundData.groups.forEach((groupObj, groupIndex) => {
                     const group = groupObj.players;
-                    for (let p = 1; p <= group.length; p++) {
-                        const player = data.scores?.[`r${roundIndex}_g${groupIndex}`]?.[`p${p}`];
-                        if(player) points[player] += Math.max(0, group.length - p);
+                    const roundScores = data.scores?.[`r${roundIndex}_g${groupIndex}`] || {};
+                    for (const posKey in roundScores) {
+                        const player = roundScores[posKey];
+                        if (player) {
+                            const position = parseInt(posKey.replace('p', ''));
+                            const roundPoints = Math.max(0, group.length - position);
+                            points[player].rounds[roundIndex] = roundPoints; 
+                            points[player].total += roundPoints;
+                        }
                     }
                 });
             });
 
-            const sortedPlayers = Object.entries(points).sort((a, b) => b[1] - a[1]);
+            const sortedPlayers = Object.entries(points).sort((a, b) => b[1].total - a[1].total);
             const numClassified = data.config.classifiedPerGroup;
 
             const getRowColorClass = (index) => {
                  if (sortedPlayers.length === 0) return '';
-                 const score = sortedPlayers[index][1];
+                 const score = sortedPlayers[index][1].total;
                  const lastClassifiedIndex = numClassified - 1;
                  if (lastClassifiedIndex >= sortedPlayers.length) return 'bg-green-800/50 border-b border-green-700'; // Todos clasifican
 
-                 const lastClassifiedScore = sortedPlayers[lastClassifiedIndex] ? sortedPlayers[lastClassifiedIndex][1] : -1;
-                 const firstEliminatedScore = sortedPlayers[numClassified] ? sortedPlayers[numClassified][1] : -1;
+                 const lastClassifiedScore = sortedPlayers[lastClassifiedIndex] ? sortedPlayers[lastClassifiedIndex][1].total : -1;
+                 const firstEliminatedScore = sortedPlayers[numClassified] ? sortedPlayers[numClassified][1].total : -1;
 
                 if (lastClassifiedScore > firstEliminatedScore) {
                     return index < numClassified ? 'bg-green-800/50 border-b border-green-700' : 'bg-red-800/50 border-b border-red-700';
@@ -651,14 +736,39 @@
                 return 'bg-red-800/50 border-b border-red-700';
             };
             
-            scoreboardContainer.innerHTML = `<div class="md:col-span-2 lg:col-span-3"><div class="bg-gray-900/80 p-4 rounded-2xl shadow-xl h-full"><h5 class="text-2xl font-bold mb-3 text-center">Clasificación Global de la Liga</h5><table class="w-full text-left rounded-lg overflow-hidden">
-                <thead class="bg-yellow-500 text-gray-900"><tr><th class="p-3">Pos</th><th class="p-3">Jugador</th><th class="p-3 text-right">Puntos</th></tr></thead>
-                <tbody>${sortedPlayers.map(([name, score], i) => `<tr class="${getRowColorClass(i)} last:border-b-0"><td class="p-3 font-semibold text-lg">${i + 1}</td><td class="p-3 text-lg">${name}</td><td class="p-3 text-lg font-bold text-right">${score}</td></tr>`).join('')}</tbody>
-                </table></div></div>`;
+            scoreboardContainer.innerHTML = `
+                <div class="md:col-span-2 lg:col-span-3">
+                    <div class="bg-gray-900/80 p-4 rounded-2xl shadow-xl h-full">
+                        <h5 class="text-2xl font-bold mb-3 text-center">Clasificación Global de la Liga</h5>
+                        <table class="w-full text-left rounded-lg overflow-hidden">
+                            <thead class="bg-yellow-500 text-gray-900">
+                                <tr>
+                                    <th class="p-3">Pos</th>
+                                    <th class="p-3">Jugador</th>
+                                    ${headers.map(h => `<th class="p-3 text-center">${h}</th>`).join('')}
+                                    <th class="p-3 text-right">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${sortedPlayers.map(([name, stats], i) => `
+                                    <tr class="${getRowColorClass(i)} last:border-b-0">
+                                        <td class="p-3 font-semibold text-lg">${i + 1}</td>
+                                        <td class="p-3 text-lg">${name}</td>
+                                        ${stats.rounds.map(r => `<td class="p-3 text-center text-lg">${r}</td>`).join('')}
+                                        <td class="p-3 text-lg font-bold text-right">${stats.total}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>`;
         }
 
         function displayFinals(data) {
             finalsContainer.innerHTML = '';
+            // APLICA CLASES DE GRID: 1 col en móvil, 2 en pantallas grandes (lg)
+            finalsContainer.className = 'grid grid-cols-1 lg:grid-cols-2 gap-8';
+            
             const { finals } = data;
             if (!finals || !finals.semifinals) return;
 
@@ -684,7 +794,8 @@
                     <span class="public-only ${match.winner === teamB ? 'text-green-400' : 'text-white'} p-3 rounded-lg w-2/5 text-center text-lg">${teamB}</span>
                 </div></div>`;
             }).join('');
-            finalsContainer.innerHTML += `<div class="bg-gray-900/80 p-6 rounded-2xl shadow-2xl"><h4 class="text-3xl font-bold text-yellow-400 mb-4">Semifinales</h4><div class="space-y-4">${semiHtml}</div></div>`;
+            // APLICA COL-SPAN-2 a las semifinales para que ocupen todo el ancho
+            finalsContainer.innerHTML += `<div class="bg-gray-900/80 p-6 rounded-2xl shadow-2xl lg:col-span-2"><h4 class="text-3xl font-bold text-yellow-400 mb-4">Semifinales</h4><div class="space-y-4">${semiHtml}</div></div>`;
 
             if (finals.final) {
                 const { final, thirdPlace } = finals;
@@ -725,11 +836,14 @@
                     <button data-stage="thirdPlace" data-winner="${thirdPlace.teams[1]}" class="admin-only ${thirdPlace.winner === thirdPlace.teams[1] ? 'bg-green-500' : 'bg-gray-700 hover:bg-gray-600'} p-3 rounded-lg w-2/5 text-center">${thirdPlace.teams[1] || '...'}</button>
                     <span class="public-only ${thirdPlace.winner === thirdPlace.teams[1] ? 'text-green-400' : 'text-white'} p-3 rounded-lg w-2/5 text-center text-lg">${thirdPlace.teams[1] || '...'}</span>
                 </div></div>`;
-                finalsContainer.innerHTML += `<div class="bg-gray-900/80 p-6 mt-8 rounded-2xl shadow-2xl"><h4 class="text-3xl font-bold text-yellow-400 mb-4">Final</h4><div class="space-y-4">${finalHtml}</div></div>`;
-                finalsContainer.innerHTML += `<div class="bg-gray-900/80 p-6 mt-8 rounded-2xl shadow-2xl"><h4 class="text-3xl font-bold text-yellow-400 mb-4">Tercer Puesto</h4><div class="space-y-4">${thirdHtml}</div></div>`;
+                
+                // Cada uno ocupa 1 columna en 'lg', por eso se ven lado a lado
+                finalsContainer.innerHTML += `<div class="bg-gray-900/80 p-6 rounded-2xl shadow-2xl"><h4 class="text-3xl font-bold text-yellow-400 mb-4">Final</h4><div class="space-y-4">${finalHtml}</div></div>`;
+                finalsContainer.innerHTML += `<div class="bg-gray-900/80 p-6 rounded-2xl shadow-2xl"><h4 class="text-3xl font-bold text-yellow-400 mb-4">Tercer Puesto</h4><div class="space-y-4">${thirdHtml}</div></div>`;
             
                 if(final.winner && thirdPlace.winner) {
-                    finalsContainer.innerHTML += `<div class="mt-8 text-center admin-only"><button id="finish-tournament-btn" class="bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold py-4 px-10 rounded-lg text-2xl">Finalizar Torneo y Ver Podio</button></div>`;
+                    // El botón de finalizar ocupa todo el ancho
+                    finalsContainer.innerHTML += `<div class="mt-8 text-center admin-only lg:col-span-2"><button id="finish-tournament-btn" class="bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold py-4 px-10 rounded-lg text-2xl">Finalizar Torneo y Ver Podio</button></div>`;
                     document.getElementById('finish-tournament-btn').addEventListener('click', () => updateDoc(tournamentDocRef, { status: 'finished', currentMatches: [`¡Torneo Finalizado! Campeón: ${final.winner}`] }));
                 }
             }
@@ -768,6 +882,32 @@
             return schedule;
         }
 
+        // NUEVA FUNCIÓN: Ajusta las columnas de la cuadrícula dinámicamente
+        function setGridCols(container, count) {
+            let colsClass = '';
+            switch (count) {
+                case 1:
+                    colsClass = 'grid-cols-1';
+                    break;
+                case 2:
+                    colsClass = 'grid-cols-1 md:grid-cols-2'; // 2 tablas, más grandes
+                    break;
+                case 3:
+                    colsClass = 'grid-cols-1 md:grid-cols-3'; // 3 tablas
+                    break;
+                case 4:
+                    colsClass = 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'; // 4 tablas
+                    break;
+                case 5:
+                case 6:
+                    colsClass = 'grid-cols-1 md:grid-cols-3 lg:grid-cols-6'; // 5 o 6 tablas, una al lado de la otra
+                    break;
+                default: // 7 o más, se ajustará
+                    colsClass = 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6';
+            }
+            container.className = `grid gap-6 ${colsClass}`;
+        }
+
         function updateToggleViewButton(currentView) {
             if (!toggleViewBtn) return;
             if (currentView === 'public') {
@@ -781,10 +921,10 @@
         function setupEventListeners() {
             addPlayerBtn.addEventListener('click', addPlayer);
             playerNameInput1.addEventListener('keypress', (e) => e.key === 'Enter' && addPlayer());
-            selectModeIndividualBtn.addEventListener('click', () => updateDoc(tournamentDocRef, { mode: 'individual', status: 'registration' }));
-            selectModeParejasBtn.addEventListener('click', () => updateDoc(tournamentDocRef, { mode: 'parejas', status: 'registration' }));
-            selectModeLigaBtn.addEventListener('click', () => updateDoc(tournamentDocRef, { mode: 'liga', status: 'registration' }));
-            selectModeFinalsBtn.addEventListener('click', () => updateDoc(tournamentDocRef, { mode: 'finals', status: 'finals_registration', players: [] }));
+            selectModeIndividualBtn.addEventListener('click', () => handleModeSelect('individual', 'registration'));
+            selectModeParejasBtn.addEventListener('click', () => handleModeSelect('parejas', 'registration'));
+            selectModeLigaBtn.addEventListener('click', () => handleModeSelect('liga', 'registration'));
+            selectModeFinalsBtn.addEventListener('click', () => handleModeSelect('finals', 'finals_registration', { players: [] }));
             drawGroupsBtn.addEventListener('click', drawBrackets);
             generateFinalsBtn.addEventListener('click', generateFinals);
             resetTournamentBtn.addEventListener('click', resetTournament);
@@ -816,6 +956,15 @@
             playersPerGroupInput.addEventListener('change', () => updateDoc(tournamentDocRef, { 'config.playersPerGroup': parseInt(playersPerGroupInput.value) || 4 }));
             numRoundsInput.addEventListener('change', () => updateDoc(tournamentDocRef, { 'config.numRounds': parseInt(numRoundsInput.value) || 3 }));
             classifiedPerGroupInput.addEventListener('change', () => updateDoc(tournamentDocRef, { 'config.classifiedPerGroup': parseInt(classifiedPerGroupInput.value) || 2 }));
+        }
+
+        async function handleModeSelect(mode, status, extraData = {}) {
+            try {
+                await updateDoc(tournamentDocRef, { mode, status, ...extraData });
+            } catch (error) {
+                console.error("Error al seleccionar modo:", error);
+                alert(`Error al guardar el modo: ${error.message}. \n\nPor favor, asegúrate de que las reglas de seguridad de Firestore (Paso 2) y la autenticación anónima (Paso 1) estén bien configuradas.`);
+            }
         }
 
         async function addPlayer() {
@@ -957,8 +1106,8 @@
                 roundScores = currentTournamentData.scores?.[group] || {};
             } else {
                 // Modo Individual: group es 'g0', 'g1', etc.
-                scorePath = `scores.${group}.r${round}.p${position}`;
-                roundScores = currentTournamentData.scores?.[group]?.[`r${round}`] || {};
+                scorePath = `scores.g${group.replace('g','')}.r${round}.p${position}`;
+                roundScores = currentTournamentData.scores?.[`g${group.replace('g','')}`]?.[`r${round}`] || {};
             }
 
             // Validar duplicados
@@ -1029,6 +1178,12 @@
                 status: 'mode_selection', mode: null, config: { playersPerGroup: 4, numRounds: 3, pointsPerWin: 3, classifiedPerGroup: 2 },
                 players: [], groups: [], rounds: [], scores: {}, finals: {}, currentMatches: []
             });
+            
+            // FIX: Limpiar manualmente el contenido de las secciones al reiniciar
+            groupsContainer.innerHTML = '';
+            ligaContainer.innerHTML = '';
+            finalsContainer.innerHTML = '';
+            scoreboardContainer.innerHTML = '';
         }
         
         main();
