@@ -46,6 +46,11 @@
         body.public-view header.admin-only {
             display: none;
         }
+
+        /* CORRECCIÓN CRÍTICA: Forzar ocultamiento */
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
 <body class="bg-gray-800 text-white min-h-screen">
@@ -166,7 +171,10 @@
                         <!-- 1st Place -->
                         <div class="text-center flex-1 max-w-sm text-gray-900">
                              <div class="bg-yellow-400 p-5 rounded-t-lg shadow-lg border-b-4 border-yellow-500"><p id="podium-1-name" class="text-4xl font-bold truncate"></p></div>
-                            <div class="bg-yellow-300 font-bold text-6xl p-4 rounded-b-lg shadow-lg flex items-center justify-center h-[180px]">1</div>
+                            <div class="bg-yellow-300 font-bold text-6xl p-4 rounded-b-lg shadow-lg flex flex-col items-center justify-center h-[180px]">
+                                <span class="text-5xl mb-1">👑</span>
+                                <span>1</span>
+                            </div>
                         </div>
                         <!-- 3rd Place -->
                         <div class="text-center flex-1 max-w-xs">
@@ -300,7 +308,7 @@
         // --- Lógica Principal ---
         async function main() {
             // CONFIRMACIÓN DE VERSIÓN
-            alert("¡VERSIÓN FINAL TOTAL (FIX RESTART) CARGADA! (15-Nov)");
+            alert("¡VERSIÓN FINAL CORRECTA CARGADA (CSS FIX)!");
             
             const currentView = localStorage.getItem('tournament_view') || 'admin';
             document.body.classList.add(currentView === 'public' ? 'public-view' : 'admin-view');
@@ -439,9 +447,10 @@
                 drawGroupsBtn.disabled = (data.players?.length || 0) < (data.config?.playersPerGroup || 2);
             }
             
-            playersPerGroupInput.value = data.config?.playersPerGroup || 4;
-            numRoundsInput.value = data.config?.numRounds || 3;
-            classifiedPerGroupInput.value = data.config?.classifiedPerGroup || 2;
+            // FIX: No sobreescribir valores del input si ya tienen datos, para evitar el problema de que se borre lo que escribiste
+            if (!playersPerGroupInput.value) playersPerGroupInput.value = data.config?.playersPerGroup || 4;
+            if (!numRoundsInput.value) numRoundsInput.value = data.config?.numRounds || 3;
+            if (!classifiedPerGroupInput.value) classifiedPerGroupInput.value = data.config?.classifiedPerGroup || 2;
         }
 
         function displayGroupsAndScores(data) {
@@ -496,7 +505,7 @@
                     </div>`;
                 }).join('');
 
-                const groupDiv = document.createElement('div'); 
+                const groupDiv = document.createElement('div'); // <-- FIX: 'groupDiv' no estaba definido aquí
                 groupDiv.className = 'bg-gray-900/80 p-6 rounded-2xl shadow-2xl';
                 groupDiv.innerHTML = `<h4 class="text-3xl font-bold text-yellow-400 mb-4">Ronda ${roundIndex + 1}</h4>
                     <div class="space-y-6">${groupsHtml}</div>
@@ -729,6 +738,7 @@
                         const player = roundScores[posKey];
                         if (player) {
                             const position = parseInt(posKey.replace('p', ''));
+                            const roundPoints = Math.max(0, group.length - position);
                             pointsThisRound[player] = Math.max(0, group.length - position);
                         }
                     }
@@ -1075,7 +1085,12 @@
         
         async function drawGroups() {
             const { players, config } = currentTournamentData;
-            const targetSize = config.playersPerGroup;
+            // FIX: LEER EL VALOR DIRECTAMENTE DEL INPUT PARA EVITAR DATOS OBSOLETOS
+            let targetSize = parseInt(playersPerGroupInput.value);
+            // Fallback a la configuración si el input está vacío o es inválido
+            if (!targetSize || isNaN(targetSize) || targetSize < 2) {
+                 targetSize = currentTournamentData.config.playersPerGroup || 4;
+            }
             
             // Si la división no es exacta, mostramos el asistente
             if (players.length % targetSize !== 0) {
